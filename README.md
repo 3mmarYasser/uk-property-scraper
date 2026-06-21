@@ -185,12 +185,36 @@ erDiagram
       int     bedrooms
       string  description
       string  agentName
-      enum    status "ACTIVE|SOLD_STC|REMOVED"
+      enum    status "ACTIVE SOLD_STC REMOVED"
     }
-    PropertyImage { string id PK; string propertyId FK; string url; int position }
-    PriceHistory  { string id PK; string propertyId FK; int price; enum changeType "INITIAL|INCREASE|DECREASE"; datetime recordedAt }
-    ScrapeRun     { string id PK; enum status; int listingsFound; int listingsNew; int priceChanges; int errorCount }
-    FieldQualitySnapshot { string id PK; string runId FK; string field; int nullCount; float nullRate }
+    PropertyImage {
+      string   id PK
+      string   propertyId FK
+      string   url
+      int      position
+    }
+    PriceHistory {
+      string   id PK
+      string   propertyId FK
+      int      price
+      enum     changeType "INITIAL INCREASE DECREASE"
+      datetime recordedAt
+    }
+    ScrapeRun {
+      string   id PK
+      enum     status
+      int      listingsFound
+      int      listingsNew
+      int      priceChanges
+      int      errorCount
+    }
+    FieldQualitySnapshot {
+      string   id PK
+      string   runId FK
+      string   field
+      int      nullCount
+      float    nullRate
+    }
 ```
 
 | Table | Purpose |
