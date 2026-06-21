@@ -1,0 +1,157 @@
+// UK Property Scraper — data model.
+//
+// Design notes:
+//  * `Property` is the canonical, de-duplicated listing. It is upserted on every
+//    scrape keyed by (portal, portalListingId) so re-runs never create duplicates.
+//  * `PriceHistory` only gets a new row when the asking price actually changes,
+//    which makes "track price changes over time" a cheap append + simple query.
+//  * `ScrapeRun` is the heartbeat used to detect a silently-stopped scraper.
+//  * `FieldQualitySnapshot` records per-field null rates per run so we can catch
+//    silent data-quality regressions (a selector that broke for one field only).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Portal {
+  ONTHEMARKET
+  RIGHTMOVE
+  ZOOPLA
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD_STC
+  REMOVED
+}
+
+enum PriceChangeType {
+  INITIAL
+  INCREASE
+  DECREASE
+}
+
+enum RunStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum RunTrigger {
+  SCHEDULED
+  MANUAL
+}
+
+model Property {
+  id              String         @id @default(cuid())
+  portal          Portal         @default(ONTHEMARKET)
+  portalListingId String
+  url             String
+
+  displayAddress  String
+  outcode         String? // e.g. "SW1A" — the first half of a UK postcode, for grouping
+  postcode        String?
+  latitude        Float?
+  longitude       Float?
+
+  // Asking price stored in whole GBP (pounds). NULL means "POA" / not advertised.
+  price           Int?
+  currency        String         @default("GBP")
+  propertyType    String?
+  bedrooms        Int?
+  bathrooms       Int?
+  description     String?        @db.Text
+
+  agentName       String?
+  agentBranch     String?
+
+  status          ListingStatus  @default(ACTIVE)
+
+  firstSeenAt     DateTime       @default(now())
+  lastSeenAt      DateTime       @default(now())
+  lastScrapedAt   DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  images          PropertyImage[]
+  priceHistory    PriceHistory[]
+
+  @@unique([portal, portalListingId])
+  @@index([price])
+  @@index([bedrooms])
+  @@index([propertyType])
+  @@index([outcode])
+  @@index([status])
+  @@map("properties")
+}
+
+model PropertyImage {
+  id         String   @id @default(cuid())
+  propertyId String
+  url        String
+  position   Int      @default(0)
+
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, url])
+  @@index([propertyId])
+  @@map("property_images")
+}
+
+model PriceHistory {
+  id         String          @id @default(cuid())
+  propertyId String
+  price      Int
+  changeType PriceChangeType
+  recordedAt DateTime        @default(now())
+
+  property   Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, recordedAt])
+  @@map("price_history")
+}
+
+model ScrapeRun {
+  id              String      @id @default(cuid())
+  portal          Portal      @default(ONTHEMARKET)
+  status          RunStatus   @default(RUNNING)
+  trigger         RunTrigger  @default(SCHEDULED)
+  location        String?
+
+  startedAt       DateTime    @default(now())
+  finishedAt      DateTime?
+
+  pagesCrawled    Int         @default(0)
+  listingsFound   Int         @default(0)
+  listingsNew     Int         @default(0)
+  listingsUpdated Int         @default(0)
+  priceChanges    Int         @default(0)
+  errorCount      Int         @default(0)
+  errorSample     String?     @db.Text
+
+  fieldQuality    FieldQualitySnapshot[]
+
+  @@index([portal, startedAt])
+  @@index([status])
+  @@map("scrape_runs")
+}
+
+model FieldQualitySnapshot {
+  id         String    @id @default(cuid())
+  runId      String
+  field      String
+  totalCount Int
+  nullCount  Int
+  nullRate   Float
+
+  run        ScrapeRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, field])
+  @@index([field])
+  @@map("field_quality_snapshots")
+}

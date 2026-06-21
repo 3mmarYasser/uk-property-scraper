@@ -1,0 +1,24 @@
+{
+  "name": "uk-property-scraper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "UK property listing scraper (OnTheMarket) with NestJS workers, Prisma/Postgres and a Next.js dashboard.",
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "db:generate": "pnpm --filter @ukps/database generate",
+    "db:migrate": "pnpm --filter @ukps/database migrate",
+    "db:studio": "pnpm --filter @ukps/database studio",
+    "scrape:once": "pnpm --filter @ukps/api scrape:once"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "typescript": "^5.6.3"
+  }
+}

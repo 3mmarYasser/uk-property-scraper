@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build outputs
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# turbo
+.turbo/
+
+# prisma
+packages/database/src/generated/
+
+# env
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# playwright
+playwright-report/
+test-results/
+.playwright-mcp/
+
+# os
+.DS_Store
+Thumbs.db
+
+# editor
+.idea/
+.vscode/
