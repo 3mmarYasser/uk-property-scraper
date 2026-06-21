@@ -1,7 +1,6 @@
 # UK Property Scraper & Monitoring
 
-<!-- After pushing, replace OWNER with your GitHub username/org so this badge renders. -->
-![CI](https://github.com/OWNER/uk-property-scraper/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/3mmarYasser/uk-property-scraper/actions/workflows/ci.yml/badge.svg)
 
 A production-shaped scraper for **[OnTheMarket](https://www.onthemarket.com/)** UK property listings, built as a pnpm/Turborepo monorepo:
 
